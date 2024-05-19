@@ -1,7 +1,11 @@
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::prelude::wasm_bindgen;
+
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[wasm_bindgen]
 pub struct Coord {
-    pub x: u8,
-    pub y: u8,
+    pub x: i64,
+    pub y: i64,
 }
 
 #[derive(Debug, Clone)]

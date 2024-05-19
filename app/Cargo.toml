@@ -14,6 +14,11 @@ http.workspace = true
 cfg-if.workspace = true
 thiserror.workspace = true
 wasm-bindgen.workspace = true
+engine = { path = "../engine" }
+log.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["sync"] }
 
 [features]
 default = []

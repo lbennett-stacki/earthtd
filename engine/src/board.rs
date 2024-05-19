@@ -1,22 +1,22 @@
 use crate::coord::{Coord, CoordError};
 use rand::prelude::SliceRandom;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Board {
-    pub width: u8,
-    pub height: u8,
-}
-
-impl Default for Board {
-    fn default() -> Self {
-        Board {
-            width: 8,
-            height: 8,
-        }
-    }
+    pub width: i64,
+    pub height: i64,
+    pub box_size: i64,
 }
 
 impl Board {
+    pub fn new(width: i64, height: i64, box_size: i64) -> Self {
+        Board {
+            width,
+            height,
+            box_size,
+        }
+    }
+
     fn random_y_coord(&self) -> Result<Coord, CoordError> {
         let available_coords = self.y_coords();
 
@@ -61,32 +61,34 @@ impl Board {
         let is_x_direction = rand::random();
 
         if is_x_direction && from.x != towards.x {
-            println!(
+            log::debug!(
                 "Random step is x direction - from {:?} towards {:?}",
-                from.x, towards.x
+                from.x,
+                towards.x
             );
 
-            let step_value: i8 = if towards.x > from.x { 1 } else { -1 };
+            let step_value = if towards.x > from.x { 1 } else { -1 };
 
-            println!("Step value: {}", step_value);
+            log::debug!("Step value: {}", step_value);
 
             return Ok(Coord {
-                x: from.x.wrapping_add_signed(step_value),
+                x: from.x + step_value,
                 y: from.y,
             });
         } else if from.y != towards.y {
-            println!(
+            log::debug!(
                 "Random step is y direction - from {:?} towards {:?}",
-                from.y, towards.y
+                from.y,
+                towards.y
             );
 
-            let step_value: i8 = if towards.y > from.y { 1 } else { -1 };
+            let step_value = if towards.y > from.y { 1 } else { -1 };
 
-            println!("Step value: {}", step_value);
+            log::debug!("Step value: {}", step_value);
 
             return Ok(Coord {
                 x: from.x,
-                y: from.y.wrapping_add_signed(step_value),
+                y: from.y + step_value,
             });
         }
 
