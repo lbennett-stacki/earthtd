@@ -1,8 +1,16 @@
 use engine::Mob;
+use leptos_use::UseMouseReturn;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
-pub fn draw_game(width: i64, height: i64, box_size: i64, mobs: Vec<Mob>) {
+pub fn draw_game(
+    width: i64,
+    height: i64,
+    box_size: i64,
+    mobs: Vec<Mob>,
+    mouse_x: f64,
+    mouse_y: f64,
+) {
     use wasm_bindgen::JsCast;
 
     let document = web_sys::window().unwrap().document().unwrap();
@@ -22,28 +30,27 @@ pub fn draw_game(width: i64, height: i64, box_size: i64, mobs: Vec<Mob>) {
 
     context.clear_rect(0.0, 0.0, width as f64, height as f64);
 
-    for x in 0..=(width / box_size) {
-        let mut start = (x * box_size) as f64;
-        start += 0.5;
+    let cols = width / box_size;
+    let rows = height / box_size;
 
-        context.begin_path();
-        context.set_stroke_style(&JsValue::from("black"));
-        context.move_to(start, 0.0);
+    for y in 0..=rows {
+        for x in 0..cols {
+            let x_b = (x * box_size) as f64;
+            let y_b = (y * box_size) as f64;
+            context.begin_path();
+            context.set_line_width(1 as f64);
+            context.set_stroke_style(&JsValue::from("rgba(0,0,0,0.1)"));
+            context.rect(x_b, y_b, box_size as f64, box_size as f64);
+            context.stroke();
 
-        context.line_to(start, height as f64);
-        context.stroke();
-    }
-
-    for y in 0..=(height / box_size) {
-        let mut start = (y * box_size) as f64;
-        start += 0.5;
-
-        context.begin_path();
-        context.set_stroke_style(&JsValue::from("black"));
-        context.move_to(0.0, start);
-
-        context.line_to(width as f64, start);
-        context.stroke();
+            let x_t = (mouse_x / box_size as f64).floor();
+            let y_t = (mouse_y / box_size as f64).floor();
+            if x_t == x as f64 && y_t == y as f64 {
+                context.set_fill_style(&JsValue::from("red"));
+                context.fill_rect(x_b, y_b, box_size as f64, box_size as f64);
+                context.fill();
+            }
+        }
     }
 
     let mob_path_colors = [
@@ -58,6 +65,7 @@ pub fn draw_game(width: i64, height: i64, box_size: i64, mobs: Vec<Mob>) {
             let offset = (box_size / 2) as f64;
 
             context.set_stroke_style(&JsValue::from(mob_path_colors[i % mob_path_colors.len()]));
+            context.set_line_width((box_size / 4) as f64);
 
             if i == 0 {
                 context.begin_path();

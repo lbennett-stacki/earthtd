@@ -44,13 +44,15 @@ impl Board {
     pub fn random_end_coord(&self) -> Result<Coord, CoordError> {
         let mut coord = self.random_y_coord()?;
 
-        coord.x = self.width;
+        coord.x = self.width / self.box_size;
 
         Ok(coord)
     }
 
     fn y_coords(&self) -> Vec<Coord> {
-        (0..self.height).map(|y| Coord { x: 0, y }).collect()
+        (0..=(self.height / self.box_size))
+            .map(|y| Coord { x: 0, y })
+            .collect()
     }
 
     pub fn random_step(&self, from: &Coord, towards: &Coord) -> Result<Coord, CoordError> {
@@ -61,30 +63,14 @@ impl Board {
         let is_x_direction = rand::random();
 
         if is_x_direction && from.x != towards.x {
-            log::debug!(
-                "Random step is x direction - from {:?} towards {:?}",
-                from.x,
-                towards.x
-            );
-
             let step_value = if towards.x > from.x { 1 } else { -1 };
-
-            log::debug!("Step value: {}", step_value);
 
             return Ok(Coord {
                 x: from.x + step_value,
                 y: from.y,
             });
         } else if from.y != towards.y {
-            log::debug!(
-                "Random step is y direction - from {:?} towards {:?}",
-                from.y,
-                towards.y
-            );
-
             let step_value = if towards.y > from.y { 1 } else { -1 };
-
-            log::debug!("Step value: {}", step_value);
 
             return Ok(Coord {
                 x: from.x,

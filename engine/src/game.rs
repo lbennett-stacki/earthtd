@@ -38,20 +38,11 @@ impl Game {
     pub fn play_round(&mut self) -> &Self {
         let _game = self.generate_mobs();
 
-        for mob in &self.mobs {
-            log::debug!(
-                "{} is starting at {:?} and ending at {:?}",
-                mob.name(),
-                mob.path().first(),
-                mob.path().last()
-            );
-        }
-
         self
     }
 
     fn generate_mobs(&mut self) -> Result<(), CoordError> {
-        for i in 0..=(self.board.width / self.board.box_size) {
+        for i in 0..3 {
             let start = self.board.random_start_coord()?;
             let end = self.board.random_end_coord()?;
             let mob = Mob::new(format!("Mob_{}", i), self.generate_mob_path(&start, &end)?);

@@ -9,7 +9,9 @@ edition = "2021"
 leptos.workspace = true
 leptos_meta.workspace = true
 leptos_router.workspace = true
+leptos_reactive.workspace = true
 leptos_axum = { workspace = true, optional = true }
+leptos-use = { workspace = true }
 http.workspace = true
 cfg-if.workspace = true
 thiserror.workspace = true
@@ -23,7 +25,13 @@ tokio = { workspace = true, features = ["sync"] }
 [features]
 default = []
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
-ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr", "dep:leptos_axum"]
+ssr = [
+  "leptos/ssr",
+  "leptos_meta/ssr",
+  "leptos_router/ssr",
+  "dep:leptos_axum",
+  "leptos-use/ssr",
+]
 
 [dependencies.web-sys]
 version = "0.3"

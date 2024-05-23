@@ -1,9 +1,11 @@
 use crate::error_template::{AppError, ErrorTemplate};
 use crate::game::draw_game;
 use engine::{Game, Mob};
+use leptos::html::Canvas;
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
+use leptos_use::{signal_throttled, use_mouse_in_element};
 use std::sync::{Mutex, OnceLock};
 
 pub mod error_template;
@@ -35,16 +37,14 @@ pub fn App() -> impl IntoView {
     }
 }
 
+pub const WIDTH: i64 = 1000;
+pub const HEIGHT: i64 = 200;
+pub const BOX_SIZE: i64 = 10;
+
 fn the_game() -> &'static Mutex<Game> {
     static GAME: OnceLock<Mutex<Game>> = OnceLock::new();
 
-    GAME.get_or_init(|| {
-        let width: i64 = 1000;
-        let height: i64 = 1000;
-        let box_size: i64 = 10;
-
-        Mutex::new(Game::new(width, height, box_size))
-    })
+    GAME.get_or_init(|| Mutex::new(Game::new(WIDTH, HEIGHT, BOX_SIZE)))
 }
 
 #[server(StartGame, "/api")]
@@ -64,10 +64,6 @@ pub async fn next_round() -> Result<Vec<Mob>, ServerFnError> {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let width: i64 = 1000;
-    let height: i64 = 1000;
-    let box_size: i64 = 10;
-
     let (mobs, set_mobs) = create_signal(vec![]);
 
     let (round, set_count) = create_signal(0);
@@ -88,31 +84,50 @@ fn HomePage() -> impl IntoView {
         }
     };
 
+    let target = create_node_ref::<Canvas>();
+    let mouse = use_mouse_in_element(target);
+
+    let throttled_x: Signal<f64> = signal_throttled(mouse.element_x, 500.0);
+    let throttled_y: Signal<f64> = signal_throttled(mouse.element_y, 500.0);
+
     create_effect(move |_| {
-        draw_game(width, height, box_size, mobs.get());
+        draw_game(
+            WIDTH,
+            HEIGHT,
+            BOX_SIZE,
+            mobs.get(),
+            throttled_x.get(),
+            throttled_y.get(),
+        );
     });
 
     view! {
         <h1>"Welcome to EarthTD!"</h1>
         <h2>{round_text}</h2>
-        <button on:click=move |_| {
-            spawn_local(async move {
-                let result = next_round().await;
+        <code>{move || (mouse.element_x.get() / BOX_SIZE as f64).ceil()} x { move || (mouse.element_y.get() / BOX_SIZE as f64).ceil()}</code>
+        <div>
+            <button on:click=move |_| {
+                spawn_local(async move {
+                    let result = next_round().await;
 
-                match result {
-                    Ok(mobs) => {
-                        log::info!("Next round!");
+                    match result {
+                        Ok(mobs) => {
+                            log::info!("Next round!");
 
-                        set_mobs(mobs);
+                            set_mobs(mobs);
+                        }
+                        Err(err) => {
+                            log::error!("Error: {:#?}", err);
+                        }
                     }
-                    Err(err) => {
-                        log::error!("Error: {:#?}", err);
-                    }
-                }
 
-            });
-        }>{next_round_text}</button>
+                });
+            }>{next_round_text}</button>
 
-        <canvas width="1000" height="1000" id="canvas" />
+            <div on>
+                // Plus 1 for border
+                <canvas node_ref=target width=WIDTH+1 height=HEIGHT+1 id="canvas" />
+            </div>
+        </div>
     }
 }
